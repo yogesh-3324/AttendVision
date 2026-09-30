@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+myenv/
+venv/
+env/
+
+# Data / uploads (IMPORTANT)
+data/uploads/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# Build files
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# ML models (if any)
+*.pt
+*.pth
+*.h5
+*.onnx
+*.pkl
