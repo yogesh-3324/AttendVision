@@ -9,7 +9,14 @@ DATA_DIR        = os.path.join(BASE_DIR, "data")
 EMBEDDINGS_DIR  = os.path.join(DATA_DIR, "embeddings")
 UPLOADS_DIR     = os.path.join(DATA_DIR, "uploads")
 FACES_DIR       = os.path.join(DATA_DIR, "faces")
-DB_PATH         = os.path.join(DATA_DIR, "smartattend.db")
+# Check if old database exists and migrate name
+OLD_DB_PATH     = os.path.join(DATA_DIR, "smartattend.db")
+DB_PATH         = os.path.join(DATA_DIR, "attendvision.db")
+if os.path.exists(OLD_DB_PATH) and not os.path.exists(DB_PATH):
+    try:
+        os.rename(OLD_DB_PATH, DB_PATH)
+    except Exception:
+        pass
 
 for d in [DATA_DIR, EMBEDDINGS_DIR, UPLOADS_DIR, FACES_DIR]:
     os.makedirs(d, exist_ok=True)
@@ -29,4 +36,4 @@ SMTP_PORT       = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER       = os.getenv("SMTP_USER", "")
 SMTP_PASSWORD   = os.getenv("SMTP_PASSWORD", "")
 EMAIL_FROM      = os.getenv("EMAIL_FROM", "")
-EMAIL_FROM_NAME = os.getenv("EMAIL_FROM_NAME", "SmartAttend System")
+EMAIL_FROM_NAME = os.getenv("EMAIL_FROM_NAME", "AttendVision System")

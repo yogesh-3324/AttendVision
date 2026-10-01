@@ -94,6 +94,14 @@ def get_student_by_roll(roll_number):
         return dict(row) if row else None
 
 
+def get_student_by_email(email):
+    with _conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM students WHERE LOWER(email)=LOWER(?) AND is_active=1", (email.strip(),)
+        ).fetchone()
+        return dict(row) if row else None
+
+
 def get_student_by_id(student_id):
     with _conn() as conn:
         row = conn.execute(
@@ -126,7 +134,11 @@ def get_all_classes():
 
 def delete_student(student_id):
     with _conn() as conn:
-        conn.execute("UPDATE students SET is_active=0 WHERE id=?", (student_id,))
+        row = conn.execute("SELECT photo_path FROM students WHERE id=?", (student_id,)).fetchone()
+        photo_path = row["photo_path"] if row and "photo_path" in row.keys() else None
+        conn.execute("DELETE FROM attendance_records WHERE student_id=?", (student_id,))
+        conn.execute("DELETE FROM students WHERE id=?", (student_id,))
+        return photo_path
 
 
 # ── Attendance ────────────────────────────────────────────────────────────────

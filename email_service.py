@@ -25,7 +25,7 @@ _BASE = """
     {extra}
   </div>
   <div style="padding:16px 32px;background:#f7f7f7;border-top:1px solid #eee;font-size:12px;color:#999">
-    Automated message from {school} SmartAttend · Do not reply
+    Automated message from {school} AttendVision · Do not reply
   </div>
 </div>
 """

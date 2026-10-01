@@ -1,12 +1,12 @@
 """
-app.py  — SmartAttend main Streamlit app
+app.py  — AttendVision main Streamlit app
 Run: streamlit run app.py
 """
 
 import streamlit as st
 
 st.set_page_config(
-    page_title="SmartAttend",
+    page_title="AttendVision",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -35,7 +35,7 @@ import database  # ensures DB is initialised
 
 # ── Sidebar nav ───────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### 🎓 SmartAttend")
+    st.markdown("### 🎓 AttendVision")
     st.markdown("---")
     page = st.radio(
         "Navigation",

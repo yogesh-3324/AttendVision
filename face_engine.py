@@ -623,6 +623,6 @@ def _draw_results(
         cv2.putText(img, label, (x + 3, y - 5),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
 
-    cv2.putText(img, "SmartAttend", (10, img.shape[0] - 10),
+    cv2.putText(img, "AttendVision", (10, img.shape[0] - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (180, 180, 180), 1)
     return img

@@ -62,7 +62,11 @@ def _enroll_form():
     if not photos:              errors.append("At least 1 photo is required")
 
     if db.get_student_by_roll(roll_number.strip()):
-        errors.append(f"Roll number **{roll_number}** is already enrolled")
+        errors.append(f"Roll number **{roll_number.strip()}** is already enrolled")
+
+    existing_by_email = db.get_student_by_email(email.strip())
+    if existing_by_email:
+        errors.append(f"Email **{email.strip()}** is already enrolled for student **{existing_by_email['name']}** (Roll No: **{existing_by_email['roll_number']}**)")
 
     if errors:
         for e in errors:
@@ -121,17 +125,22 @@ def _enroll_form():
         import cv2 as cv
         cv.imwrite(profile_path, fe.bytes_to_bgr(photos[0].getvalue()) if aligned_faces else None)
 
-    db.add_student(
-        student_id   = student_id,
-        roll_number  = roll_number.strip(),
-        name         = name.strip(),
-        email        = email.strip().lower(),
-        class_name   = class_name.strip(),
-        section      = section.strip() or None,
-        phone        = phone.strip() or None,
-        photo_path   = profile_path,
-        photos_count = len(aligned_faces),
-    )
+    try:
+        db.add_student(
+            student_id   = student_id,
+            roll_number  = roll_number.strip(),
+            name         = name.strip(),
+            email        = email.strip().lower(),
+            class_name   = class_name.strip(),
+            section      = section.strip() or None,
+            phone        = phone.strip() or None,
+            photo_path   = profile_path,
+            photos_count = len(aligned_faces),
+        )
+    except Exception as e:
+        progress.empty()
+        st.error(f"Failed to save student record: {e}")
+        return
 
     progress.empty()
     st.success(f"✅ **{name}** enrolled successfully using {len(aligned_faces)} photo(s)!")
@@ -198,11 +207,19 @@ def _manage_students():
         if not student:
             st.error(f"Student with roll **{roll_to_update}** not found")
         elif action == "Remove student":
-            db.delete_student(student["id"])
+            photo_path = db.delete_student(student["id"])
             emb_path = os.path.join(EMBEDDINGS_DIR, f"{student['id']}.npy")
             if os.path.exists(emb_path):
-                os.remove(emb_path)
-            st.success(f"Removed **{student['name']}**")
+                try:
+                    os.remove(emb_path)
+                except Exception:
+                    pass
+            if photo_path and os.path.exists(photo_path):
+                try:
+                    os.remove(photo_path)
+                except Exception:
+                    pass
+            st.success(f"Permanently removed **{student['name']}** ({student['roll_number']}) from the database.")
             st.rerun()
         else:
             st.session_state["reenroll_student"] = student

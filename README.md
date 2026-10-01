@@ -1,8 +1,8 @@
-# SmartAttend — Face Recognition Attendance System
+# AttendVision — AI Face Recognition Attendance System
 
 Full pipeline: **Classroom photo → RetinaFace detection → Face alignment → ArcFace embedding → 1:N cosine matching → Mark attendance → Send emails**
 
-Built with Streamlit + InsightFace (RetinaFace + ArcFace).
+Built with **Streamlit** + **InsightFace** (RetinaFace + ArcFace).
 
 ---
 
@@ -10,48 +10,49 @@ Built with Streamlit + InsightFace (RetinaFace + ArcFace).
 
 ### 1. Install dependencies
 ```bash
+python -m venv venv
+.\venv\Scripts\activate   # Windows (or source venv/bin/activate on Linux/Mac)
 pip install -r requirements.txt
 ```
-> First run downloads the InsightFace model (~300 MB). Cached after that.
+> First run downloads the InsightFace model (~300 MB). Cached locally after that.
 
-### 2. Configure email (optional)
+### 2. Configure email & environment
 ```bash
 cp .env.example .env
 # Edit .env with your Gmail App Password or SMTP credentials
 ```
 
-### 3. Run
+### 3. Run the Dashboard
 ```bash
 streamlit run app.py
 ```
-Opens at http://localhost:8501
+Opens in your browser at **http://localhost:8501**
 
 ---
 
 ## How it works
 
 ### Step 1 — Enroll Students
-- Go to **Enroll Students**
-- Enter student details + upload 3–5 clear face photos
-- System runs RetinaFace to extract faces, ArcFace to compute 512-dim embeddings
-- Embeddings saved to `data/embeddings/{student_id}.npy`
+- Navigate to **👤 Enroll Students**
+- Enter student details (Name, Roll Number, Class, Email, Section, Phone) + upload 3–5 clear face photos
+- System runs **RetinaFace** to extract faces and **ArcFace** to compute 512-dim normalized embeddings
+- Embeddings are saved to `data/embeddings/{student_id}.npy`
 
 ### Step 2 — Take Attendance
-- Go to **Take Attendance**
-- Select class, upload classroom photo
-- Pipeline runs automatically:
-  1. **RetinaFace** detects all faces in the image
-  2. Face alignment to canonical 112×112 (critical for accuracy)
-  3. **ArcFace** generates 512-dim embedding per face
-  4. **1:N cosine search** matches each face against all student embeddings
-  5. Students not detected → marked absent
-- See annotated image with names + confidence scores
-- Save attendance and/or send emails
+- Navigate to **📷 Take Attendance**
+- Select class, subject, date, and upload a classroom photo
+- The pipeline executes automatically:
+  1. **RetinaFace** detects all faces in the image (handles occlusions and angles)
+  2. **Face alignment** to canonical 112×112 using 5 facial landmarks
+  3. **ArcFace** generates a 512-dim embedding per detected face
+  4. **1:N cosine distance search** matches each face against all enrolled student embeddings
+  5. Students not detected in the image are marked **Absent**
+- Visual feedback: View annotated image with green bounding boxes (Present) and red (Unknown), plus confidence scores
+- Save attendance and optionally send instant automated email notifications
 
-### Step 3 — Report
-- View weekly trends, per-student history
-- Export CSV
-- Low attendance alerts
+### Step 3 — Records & Reports
+- **📋 Attendance Records**: Browse past lecture records, review detection rates, and inspect session details
+- **📊 Reports & Analytics**: View weekly attendance trends, rate fluctuations, per-student attendance rates, and automatic low attendance alerts (<75%)
 
 ---
 
@@ -70,7 +71,7 @@ Face Alignment (affine warp → 112×112)
       │
       ▼
 ArcFace Embedding (512-dim vector, L2-normalised)
-  → each face becomes a point in 512-dim space
+  → each face becomes a point in 512-dim hypersphere
       │
       ▼
 1:N Cosine Distance Search
@@ -90,26 +91,27 @@ Email Notifications (SMTP)
 | Decision | Why |
 |---|---|
 | ArcFace over FaceNet/DeepFace | State-of-the-art accuracy on LFW benchmark (99.83%) |
-| RetinaFace for detection | Handles occlusion, angles, small faces better than MTCNN |
-| Average of N enrollment embeddings | More robust than single-photo enrollment |
-| Cosine distance, not Euclidean | L2-normalised vectors — cosine is the right metric |
-| Vectorised 1:N matching | One matrix multiply for all faces — fast at scale |
-| 0.4 threshold (configurable) | Balanced precision/recall — tune in .env |
-| .npy files for embeddings | Faster than DB BLOB, easy to update per student |
-| SQLite | Zero-config, perfect for single-server deployment |
+| RetinaFace for detection | Robust multi-face detection handling occlusions, angles, and scale |
+| Average of N enrollment embeddings | More robust feature vector than single-photo enrollment |
+| Cosine distance, not Euclidean | L2-normalized vectors — cosine angle is the correct metric |
+| Vectorized 1:N matching | Single matrix multiplication for all faces — sub-second matching |
+| 0.4 threshold (configurable) | Optimal balance between precision and recall |
+| `.npy` files for embeddings | Instant disk-to-memory vector arrays without DB BLOB overhead |
+| SQLite | Zero-config, reliable relational persistence |
 
+---
 
-## Project structure
+## Project Structure
 
 ```
-smartattend/
-├── app.py              # Streamlit entry point
-├── config.py           # All settings
-├── face_engine.py      # Core: RetinaFace + ArcFace pipeline
-├── database.py         # SQLite persistence
-├── email_service.py    # SMTP email dispatch
-├── requirements.txt
-├── .env.example
+AttendVision/
+├── app.py              # Streamlit dashboard entry point
+├── config.py           # Configuration and environment settings
+├── face_engine.py      # Core AI: RetinaFace + ArcFace pipeline
+├── database.py         # SQLite persistence and data layer
+├── email_service.py    # SMTP email dispatch & HTML alerts
+├── requirements.txt    # Project dependencies
+├── .env.example        # Environment variable template
 ├── pages/
 │   ├── capture.py      # Take Attendance page
 │   ├── enroll.py       # Enroll Students page
@@ -117,7 +119,7 @@ smartattend/
 │   └── reports.py      # Reports & Analytics page
 └── data/
     ├── embeddings/     # .npy embedding files per student
-    ├── uploads/        # Classroom + profile photos
+    ├── uploads/        # Classroom & profile photos
     ├── faces/          # Cropped face thumbnails
-    └── smartattend.db  # SQLite database
+    └── attendvision.db # SQLite database
 ```
